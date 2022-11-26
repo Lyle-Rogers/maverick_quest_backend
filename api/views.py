@@ -10,6 +10,19 @@ from .serializers import *
 from .throttling import *
 from .permissions import *
 
+@permission_classes([AllowAny])
+class AutomaticLoginView(APIView):
+  # throttle_classes = [AutomaticLoginUserThrottle, AutomaticLoginAnonThrottle]
+  
+  def post(self, request):
+    try:
+      auth_token = Token.objects.get(key = request.data['auth_token'])
+    except:
+      return Response('Token is invalid')
+
+    return Response(
+      status=status.HTTP_200_OK
+    )
 
 @permission_classes([AllowAny])
 class LoginView(APIView):
