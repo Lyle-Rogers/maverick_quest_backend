@@ -8,7 +8,7 @@ class UserProperties(models.Model):
 
 class JobScope(models.Model):
   name = models.CharField(max_length=255, blank=True, null=True)
-  video = models.URLField(max_length=255, blank=True, null=True)
+  video = models.FileField(upload_to='video/', blank=True, null=True)
 
 class UserJobScope(models.Model):
   user = models.ForeignKey(User, on_delete=models.CASCADE)

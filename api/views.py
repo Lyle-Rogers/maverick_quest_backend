@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from rest_framework.response import Response
+from django.http import FileResponse
 
 from .serializers import *
 from .throttling import *
@@ -40,7 +41,7 @@ class LoginView(APIView):
         if not user.check_password(password):
             return Response("Invalid password")
 
-        auth_token = Token.objects.get_or_create(user=user.id)
+        auth_token = Token.objects.get_or_create(user=user)
 
         return Response(
             {"user_id": user.id, "auth_token": str(auth_token[0])},
@@ -55,10 +56,11 @@ class RegisterView(APIView):
     def post(self, request):
         username = request.data["username"]
 
-        username_registered = User.objects.get(username=username)
-
-        if username_registered:
-            return Response("Username is already registered")
+        try:
+            username_registered = User.objects.get(username=username)
+            return Response("That username is already registered")
+        except:
+            print('That username is available')
 
         registerSerializer = RegisterSerializer(data=request.data)
         registerSerializer.is_valid(raise_exception=True)
@@ -66,7 +68,7 @@ class RegisterView(APIView):
 
         user = User.objects.get(id=registerSerializer.data["id"])
 
-        userPropertiesSerializer = UserPropertiesSerializer(data=None, partial=True)
+        userPropertiesSerializer = UserPropertiesSerializer(data={'admin': False}, partial=True)
         userPropertiesSerializer.is_valid(raise_exception=True)
         userPropertiesSerializer.save(user=user)
 
@@ -76,3 +78,23 @@ class RegisterView(APIView):
             {"user_id": user.id, "auth_token": auth_token.key},
             status=status.HTTP_200_OK,
         )
+
+class UploadJobScopeVideoView(APIView): 
+    def post(self, request):
+        if 'video' not in request.FILES:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        jobScopeSerializer = JobScopeSerializer(data=request.data, partial=True)
+        jobScopeSerializer.is_valid(raise_exception=True)
+        jobScopeSerializer.save()
+
+        return Response(status=status.HTTP_200_OK)
+
+class StreamJobScopeVideoView(APIView):
+    def get(self, request, pk):
+        jobScope = JobScope.objects.get(pk=pk)
+
+        video = jobScope.video
+
+        # return FileResponse(video, content_type='video/mp4')
+        return FileResponse(video)

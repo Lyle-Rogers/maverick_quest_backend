@@ -6,7 +6,7 @@ from .models import *
 class RegisterSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
-    fields = ['id', 'username', 'email', 'password']
+    fields = ['id', 'username', 'password']
     write_only_fields = ['password']
 
   def create(self, validated_data):
