@@ -5,7 +5,11 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from rest_framework.response import Response
+
+from django.http import HttpResponse
+from wsgiref.util import FileWrapper
 from django.http import FileResponse
+import os
 
 from .serializers import *
 from .throttling import *
@@ -60,7 +64,7 @@ class RegisterView(APIView):
             username_registered = User.objects.get(username=username)
             return Response("That username is already registered")
         except:
-            print('That username is available')
+            pass
 
         registerSerializer = RegisterSerializer(data=request.data)
         registerSerializer.is_valid(raise_exception=True)
@@ -92,9 +96,31 @@ class UploadJobScopeVideoView(APIView):
 
 class StreamJobScopeVideoView(APIView):
     def get(self, request, pk):
-        jobScope = JobScope.objects.get(pk=pk)
+        video_path = 'media/video/Southpark_-_1302_-_The_Coon_C_P_2niTNUa.mp4'
+        file = FileWrapper(open(video_path, 'rb').read())
+        response = HttpResponse(file, content_type='video/mp4')
+        response['Content-Disposition'] = 'attachment; filename=my_video.mp4'
 
-        video = jobScope.video
+        return response
+
+        # jobScope = JobScope.objects.get(pk=pk)
+
+        # video = jobScope.video
 
         # return FileResponse(video, content_type='video/mp4')
-        return FileResponse(video)
+        # return FileResponse(open('media/' + str(video), 'rb'), content_type='video/mp4')
+        # return FileResponse(open('media/video/Southpark_-_1302_-_The_Coon_C_P_2niTNUa.mp4'), content_type='video/mp4')
+
+        # video_path = 'media/video/Southpark_-_1302_-_The_Coon_C_P_2niTNUa.mp4'
+        # video_data = open(video_path, 'rb').read()
+        # response = Response(video_data, content_type='video/mp4')
+        # return response
+
+        # video_path = 'media/video/Southpark_-_1302_-_The_Coon_C_P_2niTNUa.mp4'
+        # if os.path.exists(video_path):
+        #     with open(video_path, 'rb') as f:
+        #         video_data = f.read()
+        #     response = Response(video_data, content_type='video/mp4')
+        #     return response
+        # else:
+        #     return Response(status=status.HTTP_404_NOT_FOUND)
